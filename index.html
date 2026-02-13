@@ -168,6 +168,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
 .export-btn.green{border-color:rgba(31,208,122,.35);background:rgba(31,208,122,.08);color:var(--gr)}
 </style>
 
+<!-- Firebase -->
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 </head>
 <body>
 
@@ -190,7 +198,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
     <div class="logo">C</div>
     <div>
       <div class="ttl">CRM מנהל שטח</div>
-      <div class="tsub" id="tsub">טוען...</div>
+      <div class="tsub" id="tsub">טוען... <span id="sync-status" style="color:var(--gr);font-weight:700;transition:opacity 1s"></span></div>
     </div>
   </div>
   <div style="display:flex;gap:8px"><button class="ibtn" onclick="openReport()">📊</button><button class="ibtn" onclick="openModal('modal-export')">📤</button><button class="ibtn" onclick="openModal('modal-share')">📲</button></div>
@@ -550,8 +558,74 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
 
 <script>
 const SK='crm_v3';
+
+/* ---- FIREBASE CONFIG ---- */
+const firebaseConfig = {
+  apiKey: "AIzaSyANqRfFRSWo4Jc4k3PpPGnjjNByWs_gTZg",
+  authDomain: "crm-manahal.firebaseapp.com",
+  projectId: "crm-manahal",
+  storageBucket: "crm-manahal.firebasestorage.app",
+  messagingSenderId: "186019003333",
+  appId: "1:186019003333:web:d81b309495f25ec388a9ac"
+};
+firebase.initializeApp(firebaseConfig);
+const db_fire = firebase.firestore();
+const DOC_REF = db_fire.collection('crm').doc('data');
+
+let syncTimeout=null;
+let isSyncing=false;
+
+// Save to Firebase (debounced 1.5s)
+function saveToCloud(){
+  if(syncTimeout)clearTimeout(syncTimeout);
+  syncTimeout=setTimeout(async()=>{
+    try{
+      await DOC_REF.set(DB);
+      showSyncStatus('✅ מסונכרן');
+    }catch(e){
+      showSyncStatus('⚠️ שגיאת סנכרון');
+      console.error('Firebase save error:',e);
+    }
+  },1500);
+}
+
+// Load from Firebase on startup
+async function loadFromCloud(){
+  showSyncStatus('🔄 טוען...');
+  try{
+    const doc=await DOC_REF.get();
+    if(doc.exists){
+      const data=doc.data();
+      if(data && data.customers && data.customers.length>0){
+        DB=data;
+        localStorage.setItem(SK,JSON.stringify(DB));
+        renderAll();
+        showSyncStatus('✅ נטען מהענן');
+      } else {
+        showSyncStatus('✅ מחובר');
+      }
+    } else {
+      // First time - save current data to cloud
+      await DOC_REF.set(DB);
+      showSyncStatus('✅ נשמר לענן');
+    }
+  }catch(e){
+    showSyncStatus('📱 מצב אופליין');
+    console.error('Firebase load error:',e);
+  }
+}
+
+function showSyncStatus(msg){
+  let el=document.getElementById('sync-status');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.opacity='1';
+  setTimeout(()=>{el.style.opacity='0';},3000);
+}
+
+
 function load(){try{const d=localStorage.getItem(SK);if(d)return JSON.parse(d);}catch(e){}return{customers:[],equipment:[],payments:[],debts:[]};}
-function save(){localStorage.setItem(SK,JSON.stringify(DB));}
+function save(){localStorage.setItem(SK,JSON.stringify(DB));saveToCloud();}
 let DB=load();
 
 if(DB.customers.length===0){
@@ -1077,6 +1151,7 @@ function doLogin(){
     err.classList.remove('show');
     document.getElementById('tsub').textContent='שלום '+USERS[u].name+' · '+DB.customers.length+' לקוחות';
     renderAll();
+    loadFromCloud();
   } else {
     err.classList.add('show');
     document.getElementById('login-pass').value='';
