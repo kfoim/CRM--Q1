@@ -272,6 +272,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
   <div id="debt-list"></div>
 </div>
 
+<!-- MONTHLY COLLECTION PAGE -->
+
+<div class="page" id="pg-monthly">
+  <div id="alerts-banner" style="display:none;background:linear-gradient(135deg,#8f1818,#c0392b);border-radius:14px;padding:14px;margin-bottom:14px;color:#fff"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <span style="font-size:14px;font-weight:800">לוח גבייה לפי שוטף</span>
+    <span style="font-size:11px;color:var(--t2)">ממוין לפי תאריך יעד</span>
+  </div>
+  <div id="monthly-list"></div>
+</div>
+
 <!-- HISTORY PAGE -->
 
 <div class="page" id="pg-hist">
@@ -312,6 +323,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     <em>היסטוריה</em>
   </div>
+  <div class="ni" onclick="goPage('monthly',this)" id="ni-monthly">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <em>לוח גבייה</em>
+  </div>
 </nav>
 
 <button class="fab" id="fab-btn" onclick="openAddModal()">+</button>
@@ -334,15 +349,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
         <div class="fg"><label class="fl">עיר</label><input class="fi" id="nc-city" placeholder="תל אביב"></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="fl">דירוג אשראי</label>
-          <select class="fi" id="nc-credit">
-            <option value="A">A – מעולה</option>
-            <option value="B" selected>B – טוב</option>
-            <option value="C">C – בעייתי</option>
-            <option value="D">D – חסום</option>
+        <div class="fg"><label class="fl">תנאי תשלום *</label>
+          <select class="fi" id="nc-terms" onchange="toggleTermsOther('nc')">
+            <option value="">בחר...</option>
+            <option value="30">שוטף 30</option>
+            <option value="60">שוטף 60</option>
+            <option value="90">שוטף 90</option>
+            <option value="other">אחר</option>
           </select>
         </div>
         <div class="fg"><label class="fl">מסגרת אשראי ₪</label><input class="fi" id="nc-limit" type="number" placeholder="5000" dir="ltr"></div>
+        <div class="fg" id="nc-terms-other-wrap" style="display:none"><label class="fl">פירוט תנאים *</label><input class="fi" id="nc-terms-other" placeholder="לדוג׳: שוטף 45, שוטף+10..."></div>
       </div>
       <div class="fg"><label class="fl">הערות</label><input class="fi" id="nc-notes" placeholder="פרטים נוספים..."></div>
       <button class="btnp" onclick="saveCustomer()">שמור לקוח</button>
@@ -715,7 +732,7 @@ function goPage(name,el){
   document.getElementById('pg-'+name).classList.add('active');
   (el||document.getElementById('ni-'+name)).classList.add('active');
   curPage=name;
-  document.getElementById('fab-btn').style.display=(name==='dash'||name==='hist')?'none':'flex';
+  document.getElementById('fab-btn').style.display=(name==='dash'||name==='hist'||name==='monthly')?'none':'flex';
   renderAll();
 }
 
@@ -778,7 +795,7 @@ function custCardHtml(c,i){
       <div><div class="cname">${c.name}</div><div class="cmeta">${c.contact||'—'} · ${c.city||'—'}</div></div>
       <div class="ctail"><div class="damount ${dc}">${fmt(Math.abs(debt))}</div><div class="dlabel">${dl}</div></div>
     </div>
-    <div class="cfooter"><span class="chip cb">דירוג ${c.credit}</span>${eqC?`<span class="chip cp">📦 ${eqC}</span>`:''}${dChip}</div>
+    <div class="cfooter"><span class="chip cb">שוטף ${c.terms||'?'}</span>${eqC?`<span class="chip cp">📦 ${eqC}</span>`:''}${dChip}</div>
   </div>`;
 }
 
@@ -879,7 +896,7 @@ function openCustDetail(cid){
     <div class="dkv"><span class="dk">טלפון</span><span class="dv"><a href="tel:${c.phone}" style="color:var(--ac)">${c.phone}</a></span></div>
     <div class="dkv"><span class="dk">עיר</span><span class="dv">${c.city||'—'}</span></div>
     <div class="dkv"><span class="dk">איש קשר</span><span class="dv">${c.contact||'—'}</span></div>
-    <div class="dkv"><span class="dk">דירוג אשראי</span><span class="dv"><span class="chip ${c.credit==='A'?'cg':c.credit==='D'?'cr':'cb'}">דירוג ${c.credit}</span></span></div>
+    <div class="dkv"><span class="dk">תנאי תשלום</span><span class="dv"><span class="chip cb">${c.terms?'שוטף '+c.terms:'לא הוגדר'}</span></span></div>
     <div class="dkv"><span class="dk">מסגרת אשראי</span><span class="dv">${fmt(c.limit||0)}</span></div>
     <div class="dkv"><span class="dk">חוב רכש</span><span class="dv" style="color:${custDebt(cid)>0?'var(--rd)':'var(--gr)'}">${fmt(Math.abs(custDebt(cid)))}</span></div>
     <div class="dkv"><span class="dk">חוב ציוד</span><span class="dv" style="color:${eqDebt(cid)>0?'var(--yw)':'var(--t2)'}">${fmt(eqDebt(cid))}</span></div>
@@ -1041,10 +1058,30 @@ function onPayCustChange(cid){activeCid=cid;document.getElementById('pay-balance
 function savePayment(){
   const amt=Number(document.getElementById('pay-amount').value);
   if(!amt||amt<=0){alert('נא להזין סכום');return;}
+  const method=document.getElementById('pay-method').value;
+  const checkNum=document.getElementById('pay-check').value;
+  const payDate=document.getElementById('pay-date').value;
+  const c=getCust(activeCid);
+  
+  // בדיקת תאריך שיק
+  if(method==='שיק' && checkNum && c && c.terms && !isNaN(parseInt(c.terms))){
+    // מצא את החוב הרלוונטי — הכי ישן שלא שולם
+    const oldestDebt=DB.debts.filter(d=>d.custId===activeCid).sort((a,b)=>a.date.localeCompare(b.date))[0];
+    if(oldestDebt){
+      const validation=validateCheckDate(payDate,oldestDebt.date,c.terms);
+      if(!validation.ok){
+        const msg2=validation.msg+'\n\nהאם להמשיך בכל זאת?';const proceed=confirm(msg2);
+        if(!proceed)return;
+      } else {
+        showToast(validation.msg);
+      }
+    }
+  }
+  
   DB.payments.push({id:uid(),custId:activeCid,amount:amt,
-    method:document.getElementById('pay-method').value,
-    date:document.getElementById('pay-date').value,
-    check:document.getElementById('pay-check').value,
+    method,
+    date:payDate,
+    check:checkNum,
     note:document.getElementById('pay-note').value});
   save();renderAll();closeModal('modal-payment');showToast('תשלום נרשם ✅ '+fmt(amt));
 }
@@ -1097,10 +1134,16 @@ function saveCustomer(){
   const phone=document.getElementById('nc-phone').value.trim();
   if(!name){alert('נא להזין שם');return;}
   if(!phone){alert('נא להזין טלפון');return;}
+  const termsVal=document.getElementById('nc-terms').value;
+  const termsOther=document.getElementById('nc-terms-other').value.trim();
+  if(!termsVal){alert('נא לבחור תנאי תשלום');return;}
+  if(termsVal==='other'&&!termsOther){alert('נא לפרט את תנאי התשלום');return;}
+  const terms=termsVal==='other'?termsOther:termsVal;
   DB.customers.push({id:uid(),name,phone,
     contact:document.getElementById('nc-contact').value.trim(),
     city:document.getElementById('nc-city').value.trim(),
-    credit:document.getElementById('nc-credit').value,
+    terms,
+    credit:'B',
     limit:Number(document.getElementById('nc-limit').value)||0,
     notes:document.getElementById('nc-notes').value.trim(),
     created:today(),active:true});
@@ -1187,6 +1230,7 @@ function doLogin(){
     document.getElementById('tsub').textContent='שלום '+USERS[u].name+' · '+DB.customers.length+' לקוחות';
     renderAll();
     loadFromCloud();
+    checkEndOfMonthReminder();
   } else {
     err.classList.add('show');
     document.getElementById('login-pass').value='';
@@ -1529,7 +1573,189 @@ function deletePayment(pid, cid){
   setTimeout(()=>openCustDetail(cid),200);
 }
 
-function renderAll(){renderDashboard();if(curPage==='cust')renderCustomers();if(curPage==='eq')renderEquipment();if(curPage==='debt')renderDebts();if(curPage==='hist')renderHistory();}
+
+/* ---- TERMS HELPER ---- */
+function toggleTermsOther(prefix){
+  const val=document.getElementById(prefix+'-terms').value;
+  const wrap=document.getElementById(prefix+'-terms-other-wrap');
+  if(wrap) wrap.style.display=val==='other'?'block':'none';
+}
+
+function termsLabel(terms){
+  if(!terms)return '—';
+  if(terms==='30'||terms==='60'||terms==='90')return 'שוטף '+terms;
+  return terms;
+}
+
+// חשב תאריך תשלום לפי שוטף
+// שוטף 30 = סוף החודש הבא אחרי חודש העסקה
+function calcPaymentDue(invoiceDate, terms){
+  if(!invoiceDate||!terms)return null;
+  const d=new Date(invoiceDate);
+  const termsNum=parseInt(terms);
+  if(isNaN(termsNum))return null;
+  // שוטף = סוף חודש + ימי שוטף
+  // לדוג׳ שוטף 30: חשבונית בינואר → תשלום 28/29 פברואר
+  // שוטף 60: חשבונית בינואר → תשלום 31 מרץ
+  const endOfMonth=new Date(d.getFullYear(), d.getMonth()+1, 0); // סוף חודש העסקה
+  const daysToAdd=termsNum;
+  const dueDate=new Date(endOfMonth);
+  dueDate.setDate(dueDate.getDate()+daysToAdd);
+  return dueDate;
+}
+
+// בדוק אם תאריך שיק תואם לשוטף
+function validateCheckDate(checkDate, invoiceDate, terms){
+  if(!checkDate||!invoiceDate||!terms)return {ok:true,msg:''};
+  const termsNum=parseInt(terms);
+  if(isNaN(termsNum))return {ok:true,msg:''};
+  const due=calcPaymentDue(invoiceDate,terms);
+  if(!due)return {ok:true,msg:''};
+  const chk=new Date(checkDate);
+  // מותר סטייה של ±5 ימים
+  const diff=Math.round((chk-due)/86400000);
+  if(Math.abs(diff)<=5)return {ok:true,msg:'✅ תאריך השיק תואם לשוטף '+terms};
+  if(diff<0)return {ok:false,msg:'⚠️ השיק מוקדם מדי! צפוי '+fmtDate(due.toISOString().split("T")[0])+' ('+Math.abs(diff)+' ימים הפרש)'};
+  return {ok:false,msg:'⚠️ השיק מאוחר מדי! צפוי '+fmtDate(due.toISOString().split("T")[0])+' ('+diff+' ימים הפרש)'};
+}
+
+// בדוק חובות שמתקרבים לתאריך גבייה
+function getUpcomingDebts(daysBefore){
+  const alerts=[];
+  const now=new Date();
+  DB.customers.forEach(c=>{
+    if(!c.terms||isNaN(parseInt(c.terms)))return;
+    const custDebts=DB.debts.filter(d=>d.custId===c.id);
+    custDebts.forEach(d=>{
+      const due=calcPaymentDue(d.date,c.terms);
+      if(!due)return;
+      const daysLeft=Math.round((due-now)/86400000);
+      if(daysLeft>=0&&daysLeft<=daysBefore){
+        alerts.push({cust:c,debt:d,due,daysLeft});
+      }
+    });
+  });
+  return alerts;
+}
+
+// הצג התראות גבייה
+
+// בדיקת תזכורת סוף חודש
+function checkEndOfMonthReminder(){
+  const now=new Date();
+  const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const today=now.getDate();
+  const daysLeft=lastDay-today;
+  const key='eom_reminder_'+now.getFullYear()+'_'+now.getMonth();
+  if(daysLeft<=3 && !localStorage.getItem(key)){
+    localStorage.setItem(key,'shown');
+    setTimeout(()=>{
+      const mo=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+      showEndOfMonthAlert(mo[now.getMonth()]);
+    },2000);
+  }
+}
+
+function showEndOfMonthAlert(monthName){
+  const pending=getUpcomingDebts(35);
+  const total=pending.reduce((s,a)=>s+Number(a.debt.amount),0);
+  if(!total&&!pending.length)return;
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML=`<div style="background:var(--sf);border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">📅</div>
+    <div style="font-size:18px;font-weight:900;margin-bottom:8px">סוף חודש ${monthName}!</div>
+    <div style="font-size:14px;color:var(--t2);margin-bottom:16px">יש ${pending.length} גביות ממתינות בסכום<br><span style="font-size:20px;font-weight:900;color:var(--rd)">${fmt(total)}</span></div>
+    <button onclick="goPage('monthly',document.getElementById('ni-monthly'));this.closest('[style*=fixed]').remove()" style="width:100%;padding:14px;border-radius:12px;background:var(--ac);color:#fff;border:none;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px">לוח גבייה 📊</button>
+    <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:10px;border-radius:12px;background:var(--s3);color:var(--tx);border:none;font-size:14px;cursor:pointer">סגור</button>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeAlertsBanner(){var b=document.getElementById('alerts-banner');if(b)b.style.display='none';}
+
+function checkCollectionAlerts(){
+  const alerts=getUpcomingDebts(10);
+  if(!alerts.length)return;
+  const el=document.getElementById('alerts-banner');
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML='<div style="font-weight:800;margin-bottom:8px;font-size:13px">⚡ התראות גבייה ('+alerts.length+')</div>'
+    +alerts.map(a=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.1)">'
+      +'<div><div style="font-size:13px;font-weight:700">'+a.cust.name+'</div>'
+      +'<div style="font-size:11px;opacity:.8">שוטף '+a.cust.terms+' · '+fmt(a.debt.amount)+'</div></div>'
+      +'<div style="text-align:left"><div style="font-size:12px;font-weight:700;color:#ffd700">'+fmtDate(a.due.toISOString().split("T")[0])+'</div>'
+      +'<div style="font-size:10px;opacity:.8">'+( a.daysLeft===0?'היום!':a.daysLeft+' ימים')+'</div></div>'
+      +'</div>').join('')
+    +'<button onclick="closeAlertsBanner()" style="margin-top:8px;width:100%;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:none;color:#fff;font-size:12px;cursor:pointer">סגור</button>';
+}
+
+/* ---- MONTHLY COLLECTION VIEW ---- */
+function renderMonthlyCollection(){
+  const el=document.getElementById('monthly-list');
+  if(!el)return;
+  
+  // קבץ חובות לפי חודש יעד (לפי שוטף)
+  const monthMap={};
+  DB.customers.forEach(c=>{
+    const custDebts=DB.debts.filter(d=>d.custId===c.id);
+    custDebts.forEach(d=>{
+      const terms=c.terms||'30';
+      const due=calcPaymentDue(d.date,terms);
+      if(!due)return;
+      const key=due.getFullYear()+'-'+String(due.getMonth()+1).padStart(2,'0');
+      if(!monthMap[key])monthMap[key]=[];
+      monthMap[key].push({c,d,due,terms});
+    });
+  });
+  
+  if(!Object.keys(monthMap).length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">אין גביות מתוכננות</div></div>';
+    return;
+  }
+  
+  const moNames=['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const now=new Date();
+  const curKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  
+  let html='';
+  Object.keys(monthMap).sort().forEach(key=>{
+    const items=monthMap[key];
+    const total=items.reduce((s,x)=>s+Number(x.d.amount),0);
+    const [yr,mn]=key.split('-');
+    const isCurrent=key===curKey;
+    const isPast=key<curKey;
+    const monthColor=isCurrent?'var(--yw)':isPast?'var(--rd)':'var(--gr)';
+    
+    html+='<div style="background:var(--sf);border:1px solid '+(isCurrent?'rgba(245,192,64,.4)':isPast?'rgba(245,90,90,.3)':'var(--br)')+';border-radius:14px;padding:14px;margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div><span style="font-size:15px;font-weight:800;color:'+monthColor+'">'+moNames[parseInt(mn)]+' '+yr+'</span>'
+      +(isCurrent?'<span style="font-size:10px;background:rgba(245,192,64,.2);color:var(--yw);border-radius:10px;padding:2px 8px;font-weight:700;margin-right:6px">החודש</span>':'')
+      +(isPast?'<span style="font-size:10px;background:rgba(245,90,90,.2);color:var(--rd);border-radius:10px;padding:2px 8px;font-weight:700;margin-right:6px">באיחור</span>':'')
+      +'</div>'
+      +'<span style="font-size:17px;font-weight:900;color:'+monthColor+'">'+fmt(total)+'</span>'
+      +'</div>';
+    
+    items.forEach(function(x){
+      const c=x.c,d=x.d,due=x.due,terms=x.terms;
+      const daysLeft=Math.round((due-now)/86400000);
+      const dueStr=due.toISOString().split('T')[0];
+      const clr=daysLeft<0?'var(--rd)':daysLeft<=10?'var(--yw)':'var(--t2)';
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--br);cursor:pointer';
+      div.onclick=function(){openCustDetail(c.id);};
+      div.innerHTML='<div style="flex:1"><div style="font-size:13px;font-weight:700">'+c.name+'</div>'
+        +'<div style="font-size:11px;color:var(--t2)">שוטף '+terms+(d.docnum?' · #'+d.docnum:'')+(d.desc?' · '+d.desc:'')+'</div></div>'
+        +'<div style="text-align:left"><div style="font-size:14px;font-weight:900;color:var(--rd)">'+fmt(d.amount)+'</div>'
+        +'<div style="font-size:10px;font-weight:700;color:'+clr+'">'+fmtDate(dueStr)+'</div></div>';
+      html+=div.outerHTML;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function renderAll(){renderDashboard();if(curPage==='cust')renderCustomers();if(curPage==='eq')renderEquipment();if(curPage==='debt')renderDebts();if(curPage==='hist')renderHistory();if(curPage==='monthly')renderMonthlyCollection();checkCollectionAlerts();}
 
 document.getElementById('fab-btn').style.display='none';
 // renderAll called after login
