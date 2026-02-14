@@ -275,6 +275,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
 <!-- MONTHLY COLLECTION PAGE -->
 
 <div class="page" id="pg-monthly">
+  <div id="visit-alerts-banner" style="display:none;background:linear-gradient(135deg,#1a4a8f,#2563eb);border-radius:14px;padding:14px;margin-bottom:10px;color:#fff"></div>
   <div id="alerts-banner" style="display:none;background:linear-gradient(135deg,#8f1818,#c0392b);border-radius:14px;padding:14px;margin-bottom:14px;color:#fff"></div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <span style="font-size:14px;font-weight:800">לוח גבייה לפי שוטף</span>
@@ -343,10 +344,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
     <div class="shead"><span class="stitle">➕ לקוח חדש</span><button class="xbtn" onclick="closeModal('modal-add-cust')">✕</button></div>
     <div class="sbody">
       <div class="fg"><label class="fl">שם עסק / לקוח *</label><input class="fi" id="nc-name" placeholder="מרכול כהן בע״מ"></div>
-      <div class="fg"><label class="fl">שם איש קשר</label><input class="fi" id="nc-contact" placeholder="משה כהן"></div>
+      <div class="fg"><label class="fl">שם איש קשר *</label><input class="fi" id="nc-contact" placeholder="משה כהן"></div>
       <div class="frow">
         <div class="fg"><label class="fl">טלפון *</label><input class="fi" id="nc-phone" type="tel" placeholder="050-0000000" dir="ltr"></div>
-        <div class="fg"><label class="fl">עיר</label><input class="fi" id="nc-city" placeholder="תל אביב"></div>
+        <div class="fg"><label class="fl">עיר *</label><input class="fi" id="nc-city" placeholder="תל אביב"></div>
       </div>
       <div class="frow">
         <div class="fg"><label class="fl">תנאי תשלום *</label>
@@ -358,8 +359,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
             <option value="other">אחר</option>
           </select>
         </div>
-        <div class="fg"><label class="fl">מסגרת אשראי ₪</label><input class="fi" id="nc-limit" type="number" placeholder="5000" dir="ltr"></div>
-        <div class="fg" id="nc-terms-other-wrap" style="display:none"><label class="fl">פירוט תנאים *</label><input class="fi" id="nc-terms-other" placeholder="לדוג׳: שוטף 45, שוטף+10..."></div>
+        <div class="fg"><label class="fl">קו (מסלול) *</label>
+          <select class="fi" id="nc-route">
+            <option value="">בחר...</option>
+            <option value="ראשון">ראשון</option>
+            <option value="שני">שני</option>
+            <option value="שלישי">שלישי</option>
+            <option value="רביעי">רביעי</option>
+            <option value="חמישי">חמישי</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" id="nc-terms-other-wrap" style="display:none"><label class="fl">פירוט תנאים *</label><input class="fi" id="nc-terms-other" placeholder="לדוג׳: שוטף 45..."></div>
+      <div class="frow">
+        <div class="fg"><label class="fl">תדירות ביקור *</label>
+          <select class="fi" id="nc-visit-freq">
+            <option value="">בחר...</option>
+            <option value="weekly">פעם בשבוע</option>
+            <option value="biweekly">פעם בשבועיים</option>
+            <option value="monthly">פעם בחודש</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">יום ביקור *</label>
+          <select class="fi" id="nc-visit-day">
+            <option value="">בחר...</option>
+            <option value="ראשון">ראשון</option>
+            <option value="שני">שני</option>
+            <option value="שלישי">שלישי</option>
+            <option value="רביעי">רביעי</option>
+            <option value="חמישי">חמישי</option>
+          </select>
+        </div>
+      </div>
       </div>
       <div class="fg"><label class="fl">הערות</label><input class="fi" id="nc-notes" placeholder="פרטים נוספים..."></div>
       <button class="btnp" onclick="saveCustomer()">שמור לקוח</button>
@@ -376,13 +407,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
     <div class="sbody">
       <div class="fg"><label class="fl">סוג ציוד *</label>
         <select class="fi" id="ne-type">
-          <option>🧊 מקרר</option><option>🏪 מדף</option>
-          <option>❄️ ארון קפוא</option><option>🪣 מיכל</option>
-          <option>📦 דיספלי</option><option>🔧 אחר</option>
+          <option value="מקרר">🧊 מקרר</option>
+          <option value="מקפיא עומד">❄️ מקפיא עומד</option>
+          <option value="מקפיא שוכב">🧊 מקפיא שוכב</option>
+          <option value="מדף">🏪 מדף</option>
+          <option value="אחר">🔧 אחר</option>
         </select>
       </div>
       <div class="frow">
-        <div class="fg"><label class="fl">מספר סידורי</label><input class="fi" id="ne-serial" placeholder="SN-001" dir="ltr"></div>
+        <div class="fg"><label class="fl">מספר סידורי *</label><input class="fi" id="ne-serial" placeholder="SN-001" dir="ltr"></div>
         <div class="fg"><label class="fl">לקוח *</label><select class="fi" id="ne-cust"></select></div>
       </div>
       <div class="frow">
@@ -417,20 +450,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
       <div class="fg"><label class="fl">יתרת חוב נוכחית</label><input class="fi" id="pay-balance" readonly dir="ltr"></div>
       <div class="frow">
         <div class="fg"><label class="fl">סכום תשלום ₪ *</label><input class="fi" id="pay-amount" type="number" placeholder="0" dir="ltr"></div>
-        <div class="fg"><label class="fl">אמצעי תשלום</label>
-          <select class="fi" id="pay-method">
+        <div class="fg"><label class="fl">אמצעי תשלום *</label>
+          <select class="fi" id="pay-method" onchange="onPayMethodChange()">
             <option value="מזומן">💵 מזומן</option>
             <option value="שיק">📝 שיק</option>
             <option value="העברה">🏦 העברה</option>
-            <option value="אשראי">💳 אשראי</option>
+            <option value="זיכוי">💰 זיכוי</option>
           </select>
         </div>
+        <div class="fg" id="pay-check-wrap" style="display:none"><label class="fl">מספר שיק *</label><input class="fi" id="pay-check" placeholder="123456" dir="ltr"></div>
+        <div class="fg" id="pay-check-date-wrap" style="display:none"><label class="fl">תאריך על השיק *</label><input class="fi" id="pay-check-date" type="date"></div>
+        <div class="fg" id="pay-docref-wrap" style="display:none"><label class="fl">מספר מסמך (לזיכוי) *</label><input class="fi" id="pay-docref" placeholder="ZK-001" dir="ltr"></div>
       </div>
       <div class="frow">
         <div class="fg"><label class="fl">תאריך</label><input class="fi" id="pay-date" type="date"></div>
-        <div class="fg"><label class="fl">מספר שיק</label><input class="fi" id="pay-check" placeholder="אופציונלי" dir="ltr"></div>
+        </div>
+      <div class="fg"><label class="fl">בחר מסמך לסגירה</label>
+        <select class="fi" id="pay-doc-select"><option value="">-- ללא שיוך מסמך --</option></select>
       </div>
-      <div class="fg"><label class="fl">הערה</label><input class="fi" id="pay-note" placeholder="הערה לתשלום..."></div>
+      <div class="fg"><label class="fl">הערה *</label><input class="fi" id="pay-note" placeholder="חובה להזין הערה..."></div>
       <button class="btnp" onclick="savePayment()">אשר תשלום</button>
     </div>
   </div>
@@ -462,7 +500,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
 <div class="overlay" id="modal-cust-detail">
   <div class="sheet">
     <div class="shandle"></div>
-    <div class="shead"><span class="stitle" id="cd-title">פרטי לקוח</span><button class="xbtn" onclick="closeModal('modal-cust-detail')">✕</button></div>
+    <div class="shead"><span class="stitle" id="cd-title">פרטי לקוח</span><div style="display:flex;gap:6px"><button onclick="deleteActiveCust()" style="color:var(--rd);background:none;border:none;font-size:11px;cursor:pointer;padding:2px 6px">🗑️</button><button class="xbtn" onclick="closeModal('modal-cust-detail')">✕</button></div></div>
     <div class="sbody">
       <div class="arow" id="cd-actions"></div>
       <div style="margin-top:16px"><div class="sh"><span class="st">פרטים</span></div><div id="cd-info"></div></div>
@@ -514,6 +552,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
       <button class="export-btn green" onclick="exportCSV('payments')">💰 יצוא תשלומים</button>
       <button class="export-btn green" onclick="exportCSV('debts')">📋 יצוא חובות מפורט</button>
       <button class="export-btn" onclick="exportCSV('all')">📊 יצוא הכל (גיליון מאוחד)</button>
+      <button class="export-btn green" onclick="exportExcelByRoute()">🗺️ יצוא לפי קווים</button>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--br)">
+        <div style="font-weight:700;margin-bottom:8px;font-size:13px">📥 ייבוא לקוחות מ-CSV</div>
+        <p style="font-size:12px;color:var(--t2);margin-bottom:8px">פורמט: קו,שם,איש קשר,טלפון,עיר,תנאי תשלום,תדירות,יום ביקור</p>
+        <input type="file" accept=".csv" id="import-csv-input" style="display:none" onchange="importCSV(this.files[0])">
+        <button class="export-btn" onclick="document.getElementById('import-csv-input').click()">📂 בחר קובץ CSV לייבוא</button>
+      </div>
     </div>
   </div>
 </div>
@@ -560,6 +605,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
   </button>
   <button class="btno" style="margin-top:8px" onclick="copyInstallInstructions()">📋 העתק הוראות התקנה</button>
 </div>
+```
 
   </div>
 </div>
@@ -675,8 +721,8 @@ function updateTopSub(){
 }
 
 
-function load(){try{const d=localStorage.getItem(SK);if(d)return JSON.parse(d);}catch(e){}return{customers:[],equipment:[],payments:[],debts:[]};}
-function save(){localStorage.setItem(SK,JSON.stringify(DB));saveToCloud();}
+function load(){try{const d=localStorage.getItem(SK);if(d)return JSON.parse(d);}catch(e){}return{customers:[],equipment:[],payments:[],debts:[],visits:[]};}
+function save(){if(!DB.visits)DB.visits=[];localStorage.setItem(SK,JSON.stringify(DB));saveToCloud();}
 let DB=load();
 
 if(DB.customers.length===0){
@@ -717,6 +763,7 @@ function avLetter(n){return n?n.charAt(0):'?';}
 
 function custDebt(cid){
   const d=DB.debts.filter(x=>x.custId===cid).reduce((s,x)=>s+Number(x.amount),0);
+  // שיק דחוי יורד מהחוב גם לפני מועד הפירעון
   const p=DB.payments.filter(x=>x.custId===cid).reduce((s,x)=>s+Number(x.amount),0);
   return d-p;
 }
@@ -889,18 +936,22 @@ function openCustDetail(cid){
   document.getElementById('cd-actions').innerHTML=`
     <button class="abtn" onclick="openPaymentModal('${cid}')"><span>💰</span>תשלום</button>
     <button class="abtn" onclick="openDebtModal('${cid}')"><span>📋</span>חוב חדש</button>
+    <button class="abtn" onclick="openVisitUpdate('${cid}')"><span>📸</span>עדכון ביקור</button>
     <button class="abtn" onclick="sendWA('${cid}')"><span>💬</span>WhatsApp</button>
     <button class="abtn" onclick="callCust('${cid}')"><span>📞</span>התקשר</button>`;
   document.getElementById('cd-info').innerHTML=`
     <div class="dkv"><span class="dk">טלפון</span><span class="dv"><a href="tel:${c.phone}" style="color:var(--ac)">${c.phone}</a></span></div>
     <div class="dkv"><span class="dk">עיר</span><span class="dv">${c.city||'—'}</span></div>
     <div class="dkv"><span class="dk">איש קשר</span><span class="dv">${c.contact||'—'}</span></div>
-    <div class="dkv"><span class="dk">תנאי תשלום</span><span class="dv"><span class="chip cb">${c.terms?'שוטף '+c.terms:'לא הוגדר'}</span></span></div>
+    <div class="dkv"><span class="dk">תנאי תשלום</span><span class="dv"><span class="chip cb" onclick="openEditTerms(c.id)" style="cursor:pointer">${c.terms?'שוטף '+c.terms:'לא הוגדר'} ✏️</span></span></div>
     <div class="dkv"><span class="dk">מסגרת אשראי</span><span class="dv">${fmt(c.limit||0)}</span></div>
     <div class="dkv"><span class="dk">חוב רכש</span><span class="dv" style="color:${custDebt(cid)>0?'var(--rd)':'var(--gr)'}">${fmt(Math.abs(custDebt(cid)))}</span></div>
     <div class="dkv"><span class="dk">חוב ציוד</span><span class="dv" style="color:${eqDebt(cid)>0?'var(--yw)':'var(--t2)'}">${fmt(eqDebt(cid))}</span></div>
     <div class="dkv"><span class="dk">סה"כ חוב</span><span class="dv" style="color:${debt>0?'var(--rd)':debt<0?'var(--gr)':'var(--t2)'};font-size:17px;font-weight:900">${fmt(Math.abs(debt))} ${debt>0?'חוב':debt<0?'זכות':'מאוזן'}</span></div>
-    ${c.notes?`<div class="dkv"><span class="dk">הערות</span><span class="dv">${c.notes}</span></div>`:''}`;
+    ${c.notes?`<div class="dkv"><span class="dk">הערות</span><span class="dv">${c.notes}</span></div>`:''}
+    <div class="dkv"><span class="dk">קו/מסלול</span><span class="dv">${c.route||'—'}</span></div>
+    <div class="dkv"><span class="dk">ביקור</span><span class="dv">${c.visitDay||'—'} · ${c.visitFreq==='weekly'?'שבועי':c.visitFreq==='biweekly'?'דו-שבועי':c.visitFreq==='monthly'?'חודשי':'—'}</span></div>
+    <div class="dkv"><span class="dk">ביקור אחרון</span><span class="dv">${c.lastVisit?fmtDate(c.lastVisit):'לא בוצע'}</span></div>`;
   const ceq=DB.equipment.filter(e=>e.custId===cid);
   document.getElementById('cd-equipment').innerHTML=ceq.length
     ?ceq.map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--br);cursor:pointer" onclick="closeModal('modal-cust-detail');setTimeout(()=>openEqDetail('${e.id}'),200)">
@@ -969,7 +1020,8 @@ function openCustDetail(cid){
   } else {
     histHtml='<div style="color:var(--t3);font-size:13px;padding:8px 0">אין היסטוריית תשלומים</div>';
   }
-  document.getElementById('cd-history').innerHTML=histHtml;
+  // Use new detailed payment history
+  renderPaymentHistory(cid);
   openModal('modal-cust-detail');
 }
 
@@ -1056,36 +1108,85 @@ function openPaymentGeneral(){
 function onPayCustChange(cid){activeCid=cid;document.getElementById('pay-balance').value=fmt(totalDebt(cid));}
 function savePayment(){
   const amt=Number(document.getElementById('pay-amount').value);
-  if(!amt||amt<=0){alert('נא להזין סכום');return;}
   const method=document.getElementById('pay-method').value;
-  const checkNum=document.getElementById('pay-check').value;
   const payDate=document.getElementById('pay-date').value;
-  const c=getCust(activeCid);
+  const note=document.getElementById('pay-note').value.trim();
+  const docSel=document.getElementById('pay-doc-select').value;
   
-  // בדיקת תאריך שיק
-  if(method==='שיק' && checkNum && c && c.terms && !isNaN(parseInt(c.terms))){
-    // מצא את החוב הרלוונטי — הכי ישן שלא שולם
-    const oldestDebt=DB.debts.filter(d=>d.custId===activeCid).sort((a,b)=>a.date.localeCompare(b.date))[0];
-    if(oldestDebt){
-      const validation=validateCheckDate(payDate,oldestDebt.date,c.terms);
-      if(!validation.ok){
-        const msg2=validation.msg+'\n\nהאם להמשיך בכל זאת?';const proceed=confirm(msg2);
-        if(!proceed)return;
-      } else {
-        showToast(validation.msg);
+  if(!amt||amt<=0){alert('נא להזין סכום');return;}
+  if(!note){alert('הערה היא שדה חובה בכל תשלום');return;}
+  
+  let checkNum='',checkDate='',docRef='';
+  
+  if(method==='שיק'){
+    checkNum=document.getElementById('pay-check').value.trim();
+    checkDate=document.getElementById('pay-check-date').value;
+    if(!checkNum){alert('מספר שיק הוא חובה');return;}
+    if(!checkDate){alert('תאריך השיק הוא חובה');return;}
+    // בדיקת תאריך שיק מול שוטף
+    const cust=getCust(activeCid);
+    if(cust&&cust.terms&&!isNaN(parseInt(cust.terms))&&docSel){
+      const debt=DB.debts.find(d=>d.id===docSel);
+      if(debt){
+        const v=validateCheckDate(checkDate,debt.date,cust.terms);
+        if(!v.ok){
+          const msg2=v.msg+'\n\nהאם להמשיך בכל זאת?';
+          if(!confirm(msg2))return;
+        }else{showToast(v.msg);}
       }
     }
   }
   
-  DB.payments.push({id:uid(),custId:activeCid,amount:amt,
-    method,
-    date:payDate,
-    check:checkNum,
-    note:document.getElementById('pay-note').value});
-  save();renderAll();closeModal('modal-payment');showToast('תשלום נרשם ✅ '+fmt(amt));
+  if(method==='זיכוי'){
+    docRef=document.getElementById('pay-docref').value.trim();
+    if(!docRef){alert('מספר מסמך הוא חובה לזיכוי');return;}
+  }
+  
+  // סמן מסמך כסגור אם נבחר
+  if(docSel){
+    const debt=DB.debts.find(d=>d.id===docSel);
+    if(debt){debt.closed=true;debt.closedDate=payDate;debt.closedBy=method;}
+  }
+  
+  DB.payments.push({
+    id:uid(),custId:activeCid,amount:method==='זיכוי'?-Math.abs(amt):amt,
+    method,date:payDate,note,
+    check:checkNum,checkDate,docRef,
+    linkedDoc:docSel||null,
+    isDeferred:method==='שיק'&&checkDate>payDate
+  });
+  save();renderAll();closeModal('modal-payment');
+  showToast('תשלום נרשם ✅ '+fmt(Math.abs(amt)));
 }
 
-/* ---- DEBT ---- */
+function onPayMethodChange(){
+  const m=document.getElementById('pay-method').value;
+  document.getElementById('pay-check-wrap').style.display=m==='שיק'?'block':'none';
+  document.getElementById('pay-check-date-wrap').style.display=m==='שיק'?'block':'none';
+  document.getElementById('pay-docref-wrap').style.display=m==='זיכוי'?'block':'none';
+}
+
+function openPaymentModal(cid){
+  activeCid=cid;
+  document.getElementById('pay-amount').value='';
+  document.getElementById('pay-method').value='מזומן';
+  document.getElementById('pay-date').value=today();
+  document.getElementById('pay-note').value='';
+  document.getElementById('pay-check').value='';
+  document.getElementById('pay-check-date').value='';
+  document.getElementById('pay-docref').value='';
+  document.getElementById('pay-check-wrap').style.display='none';
+  document.getElementById('pay-check-date-wrap').style.display='none';
+  document.getElementById('pay-docref-wrap').style.display='none';
+  // מלא רשימת מסמכים פתוחים
+  const sel=document.getElementById('pay-doc-select');
+  const openDebts=DB.debts.filter(d=>d.custId===cid&&!d.closed);
+  sel.innerHTML='<option value="">-- ללא שיוך מסמך --</option>'
+    +openDebts.map(d=>'<option value="'+d.id+'">#'+d.docnum+' | '+fmt(d.amount)+(d.desc?' | '+d.desc:'')+'</option>').join('');
+  openModal('modal-payment');
+}
+
+
 function openDebtModal(cid){
   activeCid=cid;
   const c=getCust(cid);
@@ -1130,22 +1231,28 @@ function saveDebt(){
 /* ---- CUSTOMER SAVE ---- */
 function saveCustomer(){
   const name=document.getElementById('nc-name').value.trim();
+  const contact=document.getElementById('nc-contact').value.trim();
   const phone=document.getElementById('nc-phone').value.trim();
-  if(!name){alert('נא להזין שם');return;}
-  if(!phone){alert('נא להזין טלפון');return;}
+  const city=document.getElementById('nc-city').value.trim();
   const termsVal=document.getElementById('nc-terms').value;
   const termsOther=document.getElementById('nc-terms-other').value.trim();
+  const route=document.getElementById('nc-route').value;
+  const visitFreq=document.getElementById('nc-visit-freq').value;
+  const visitDay=document.getElementById('nc-visit-day').value;
+  if(!name){alert('נא להזין שם');return;}
+  if(!contact){alert('שם איש קשר הוא שדה חובה');return;}
+  if(!phone){alert('נא להזין טלפון');return;}
+  if(!city){alert('עיר היא שדה חובה');return;}
   if(!termsVal){alert('נא לבחור תנאי תשלום');return;}
   if(termsVal==='other'&&!termsOther){alert('נא לפרט את תנאי התשלום');return;}
+  if(!route){alert('נא לבחור קו/מסלול');return;}
+  if(!visitFreq){alert('נא לבחור תדירות ביקור');return;}
+  if(!visitDay){alert('נא לבחור יום ביקור');return;}
   const terms=termsVal==='other'?termsOther:termsVal;
-  DB.customers.push({id:uid(),name,phone,
-    contact:document.getElementById('nc-contact').value.trim(),
-    city:document.getElementById('nc-city').value.trim(),
-    terms,
+  DB.customers.push({id:uid(),name,phone,contact,city,terms,route,visitFreq,visitDay,
     credit:'B',
-    limit:Number(document.getElementById('nc-limit').value)||0,
     notes:document.getElementById('nc-notes').value.trim(),
-    created:today(),active:true});
+    created:today(),lastVisit:null,lastVisitPhoto:null,active:true});
   save();renderAll();closeModal('modal-add-cust');showToast('לקוח נוסף ✅');
   ['nc-name','nc-contact','nc-phone','nc-city','nc-limit','nc-notes'].forEach(id=>document.getElementById(id).value='');
 }
@@ -1164,7 +1271,9 @@ function openAddEq(){
 }
 function saveEquipment(){
   const cid=document.getElementById('ne-cust').value;
+  const serial=document.getElementById('ne-serial').value.trim();
   if(!cid){alert('נא לבחור לקוח');return;}
+  if(!serial){alert('מספר סידורי הוא שדה חובה');return;}
   DB.equipment.push({id:uid(),
     type:document.getElementById('ne-type').value,
     serial:document.getElementById('ne-serial').value.trim(),
@@ -1671,6 +1780,20 @@ function showEndOfMonthAlert(monthName){
   document.body.appendChild(overlay);
 }
 
+
+function deleteActiveCust(){
+  const cust=getCust(activeCid);
+  if(!cust)return;
+  if(!confirm('למחוק את הלקוח '+cust.name+'? כל החובות, תשלומים וציוד יימחקו.'))return;
+  DB.customers=DB.customers.filter(c=>c.id!==activeCid);
+  DB.debts=DB.debts.filter(d=>d.custId!==activeCid);
+  DB.payments=DB.payments.filter(p=>p.custId!==activeCid);
+  DB.equipment=DB.equipment.filter(e=>e.custId!==activeCid);
+  save();closeModal('modal-cust-detail');renderAll();
+  showToast('לקוח נמחק');
+}
+
+function closeVisitAlertsBanner(){var b=document.getElementById("visit-alerts-banner");if(b)b.style.display="none";}
 function closeAlertsBanner(){var b=document.getElementById('alerts-banner');if(b)b.style.display='none';}
 
 function checkCollectionAlerts(){
@@ -1754,12 +1877,292 @@ function renderMonthlyCollection(){
   el.innerHTML=html;
 }
 
-function renderAll(){renderDashboard();if(curPage==='cust')renderCustomers();if(curPage==='eq')renderEquipment();if(curPage==='debt')renderDebts();if(curPage==='hist')renderHistory();if(curPage==='monthly')renderMonthlyCollection();checkCollectionAlerts();}
+
+/* ---- VISIT MANAGEMENT ---- */
+function openVisitUpdate(cid){
+  activeCid=cid;
+  const cust=getCust(cid);
+  document.getElementById('visit-photo').value='';
+  document.getElementById('visit-notes').value='';
+  document.getElementById('visit-skip-reason').value='';
+  document.getElementById('visit-skip-wrap').style.display='none';
+  document.getElementById('visit-alert-banner').style.display='none';
+  // בדוק אם יש התראה עבור לקוח זה
+  const alert=getVisitAlert(cid);
+  if(alert){
+    const banner=document.getElementById('visit-alert-banner');
+    banner.style.display='block';
+    banner.textContent=alert;
+  }
+  openModal('modal-visit');
+}
+
+function markVisitSkipped(){
+  document.getElementById('visit-skip-wrap').style.display='block';
+  document.getElementById('visit-photo').closest('.fg').style.display='none';
+}
+
+function saveVisit(){
+  const cust=getCust(activeCid);
+  const skipWrap=document.getElementById('visit-skip-wrap');
+  const isSkipped=skipWrap.style.display!=='none';
+  
+  if(isSkipped){
+    const reason=document.getElementById('visit-skip-reason').value.trim();
+    if(!reason){alert('חובה לציין סיבה לאי-ביקור');return;}
+    DB.visits=DB.visits||[];
+    DB.visits.push({id:uid(),custId:activeCid,date:today(),skipped:true,reason,photo:null,notes:''});
+    save();renderAll();closeModal('modal-visit');
+    showToast('סיבה נרשמה');
+    return;
+  }
+  
+  const photoInput=document.getElementById('visit-photo');
+  const notes=document.getElementById('visit-notes').value.trim();
+  
+  if(!photoInput.files||!photoInput.files[0]){alert('חובה לצרף תמונה מהביקור');return;}
+  
+  const reader=new FileReader();
+  reader.onload=function(e){
+    DB.visits=DB.visits||[];
+    DB.visits.push({id:uid(),custId:activeCid,date:today(),skipped:false,reason:'',photo:e.target.result,notes});
+    // עדכן תאריך ביקור אחרון בלקוח
+    const cust=getCust(activeCid);
+    if(cust){cust.lastVisit=today();cust.lastVisitPhoto=e.target.result;}
+    save();renderAll();closeModal('modal-visit');
+    showToast('ביקור נרשם ✅');
+  };
+  reader.readAsDataURL(photoInput.files[0]);
+}
+
+function getVisitAlert(cid){
+  const cust=getCust(cid);
+  if(!cust||!cust.visitFreq||!cust.visitDay)return null;
+  const lastVisit=cust.lastVisit;
+  if(!lastVisit)return 'לא בוצע ביקור מאז פתיחת הלקוח!';
+  const days=daysDiff(lastVisit);
+  const freqDays={weekly:7,biweekly:14,monthly:30};
+  const expected=freqDays[cust.visitFreq]||7;
+  if(days>expected)return 'ביקור אחרון לפני '+days+' ימים — נדרש ביקור כל '+expected+' ימים!';
+  return null;
+}
+
+function checkVisitAlerts(){
+  const today_=new Date();
+  const dow=today_.getDay(); // 0=sun,1=mon...5=fri,6=sat
+  if(dow===5||dow===6)return; // שישי שבת
+  const dayNames={ראשון:0,שני:1,שלישי:2,רביעי:3,חמישי:4};
+  const alerts=[];
+  DB.customers.filter(c=>c.active&&c.visitDay).forEach(cust=>{
+    const expectedDow=dayNames[cust.visitDay];
+    if(expectedDow===undefined)return;
+    if(expectedDow!==dow)return; // לא היום שלו
+    // בדוק אם כבר ביקר היום
+    DB.visits=DB.visits||[];
+    const visitedToday=DB.visits.some(v=>v.custId===cust.id&&v.date===today());
+    if(!visitedToday) alerts.push(cust);
+  });
+  if(!alerts.length)return;
+  const el=document.getElementById('visit-alerts-banner');
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML='<div style="font-weight:800;margin-bottom:6px">📅 ביקורים להיום ('+alerts.length+')</div>'
+    +alerts.map(c=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid rgba(255,255,255,.15);cursor:pointer" onclick="openVisitUpdate(\''+c.id+'\')">'
+      +'<span>'+c.name+'</span><span style="font-size:11px;opacity:.7">'+c.visitDay+' · '+(c.visitFreq==='weekly'?'שבועי':c.visitFreq==='biweekly'?'דו-שבועי':'חודשי')+'</span>'
+      +'</div>').join('')
+    +'<button onclick="closeVisitAlertsBanner()" style="margin-top:8px;width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:none;color:#fff;font-size:12px;cursor:pointer">סגור</button>';
+}
+
+/* ---- UPDATE CUSTOMER TERMS IN CARD ---- */
+function openEditTerms(cid){
+  activeCid=cid;
+  const cust=getCust(cid);
+  if(!cust)return;
+  const cur=cust.terms||'';
+  const isCustom=cur&&cur!=='30'&&cur!=='60'&&cur!=='90';
+  let html='<div style="padding:16px">'
+    +'<div style="font-weight:800;margin-bottom:12px">עדכון תנאי תשלום</div>'
+    +'<select class="fi" id="edit-terms-sel" onchange="toggleTermsEditSel()" style="margin-bottom:8px">'
+    +'<option value="">בחר...</option>'
+    +'<option value="30"'+(cur==='30'?' selected':'')+'>שוטף 30</option>'
+    +'<option value="60"'+(cur==='60'?' selected':'')+'>שוטף 60</option>'
+    +'<option value="90"'+(cur==='90'?' selected':'')+'>שוטף 90</option>'
+    +'<option value="other"'+(isCustom?' selected':'')+'>אחר</option>'
+    +'</select>'
+    +'<div id="edit-terms-other-wrap" style="display:'+(isCustom?'block':'none')+'">'
+    +'<input class="fi" id="edit-terms-other" value="'+(isCustom?cur:'')+'"></div>'
+    +'<button class="btnp" style="margin-top:8px" onclick="saveEditTerms()">שמור</button>'
+    +'</div>';
+  showInlineModal(html);
+}
+
+function toggleTermsEditSel(){
+  const val=document.getElementById('edit-terms-sel').value;
+  const wrap=document.getElementById('edit-terms-other-wrap');
+  if(wrap)wrap.style.display=val==='other'?'block':'none';
+}
+
+
+function saveEditTerms(){
+  const cust=getCust(activeCid);
+  if(!cust)return;
+  const val=document.getElementById('edit-terms-sel').value;
+  const other=document.getElementById('edit-terms-other')?document.getElementById('edit-terms-other').value.trim():'';
+  if(!val){alert('נא לבחור');return;}
+  if(val==='other'&&!other){alert('נא לפרט');return;}
+  cust.terms=val==='other'?other:val;
+  save();renderAll();closeInlineModal();
+  showToast('תנאי תשלום עודכנו ✅');
+}
+
+function showInlineModal(html){
+  let el=document.getElementById('inline-modal');
+  if(!el){
+    el=document.createElement('div');
+    el.id='inline-modal';
+    el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:flex-end;justify-content:center';
+    el.onclick=function(e){if(e.target===el)closeInlineModal();};
+    document.body.appendChild(el);
+  }
+  el.innerHTML='<div style="background:var(--sf);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding-bottom:env(safe-area-inset-bottom)">'+html+'<button onclick="closeInlineModal()" style="width:calc(100% - 32px);margin:0 16px 16px;padding:12px;border-radius:12px;background:var(--s3);border:none;color:var(--tx);font-size:14px;cursor:pointer">סגור</button></div>';
+  el.style.display='flex';
+}
+
+function closeInlineModal(){
+  const el=document.getElementById('inline-modal');
+  if(el)el.style.display='none';
+}
+
+/* ---- EXPORT EXCEL BY ROUTE ---- */
+function exportExcelByRoute(){
+  const routes=[...new Set(DB.customers.filter(c=>c.active&&c.route).map(c=>c.route))].sort();
+  if(!routes.length){alert('אין לקוחות עם קו מוגדר');return;}
+  
+  let csv='קו,שם לקוח,איש קשר,טלפון,עיר,תנאי תשלום,תדירות,יום ביקור,חוב,ביקור אחרון\n';
+  routes.forEach(route=>{
+    const custs=DB.customers.filter(c=>c.active&&c.route===route);
+    custs.forEach(cust=>{
+      const debt=totalDebt(cust.id);
+      const freqLabel=cust.visitFreq==='weekly'?'שבועי':cust.visitFreq==='biweekly'?'דו-שבועי':cust.visitFreq==='monthly'?'חודשי':'';
+      csv+=csvRow([route,cust.name,cust.contact||'',cust.phone,cust.city||'',
+        cust.terms?'שוטף '+cust.terms:cust.terms||'',
+        freqLabel,cust.visitDay||'',debt,cust.lastVisit||'']);
+    });
+    csv+='\n'; // שורת הפרדה בין קווים
+  });
+  
+  downloadCSV(csv,'קווים_'+today()+'.csv');
+}
+
+/* ---- IMPORT CSV ---- */
+function importCSV(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    if(!lines.length){alert('קובץ ריק');return;}
+    let imported=0,errors=[];
+    // Skip header
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(',');
+      if(cols.length<4)continue;
+      const name=(cols[1]||'').trim();
+      if(!name)continue;
+      if(DB.customers.find(c=>c.name===name)){errors.push(name+' כבר קיים');continue;}
+      DB.customers.push({
+        id:uid(),name,
+        contact:(cols[2]||'').trim(),
+        phone:(cols[3]||'').trim(),
+        city:(cols[4]||'').trim(),
+        terms:(cols[5]||'').replace('שוטף ','').trim(),
+        visitFreq:(cols[6]||'')==='שבועי'?'weekly':(cols[6]||'')==='דו-שבועי'?'biweekly':'monthly',
+        visitDay:(cols[7]||'').trim(),
+        route:(cols[0]||'').trim(),
+        credit:'B',notes:'',created:today(),active:true,lastVisit:null
+      });
+      imported++;
+    }
+    save();renderAll();
+    let msg='יובאו '+imported+' לקוחות';
+    if(errors.length)msg+=' | '+errors.length+' כבר קיימים: '+errors.slice(0,3).join(', ');
+    alert(msg);
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+/* ---- PAYMENT HISTORY WITH DEFERRED CHECKS ---- */
+function renderPaymentHistory(cid){
+  const el=document.getElementById('cd-payments');
+  if(!el)return;
+  const pays=DB.payments.filter(p=>p.custId===cid).sort((a,b)=>a.date>b.date?-1:1);
+  const debts=DB.debts.filter(d=>d.custId===cid);
+  if(!pays.length&&!debts.length){el.innerHTML='<div style="color:var(--t2);font-size:12px;padding:8px">אין היסטוריה</div>';return;}
+  
+  // מיין הכל ביחד — חובות וזיכויים
+  let items=[];
+  debts.forEach(d=>items.push({type:'debt',date:d.date,data:d}));
+  pays.forEach(p=>{
+    // שיק דחוי מופיע לפי תאריך השיק
+    const displayDate=p.isDeferred&&p.checkDate?p.checkDate:p.date;
+    items.push({type:'pay',date:displayDate,data:p});
+  });
+  items.sort((a,b)=>a.date>b.date?-1:1);
+  
+  el.innerHTML=items.map(item=>{
+    if(item.type==='debt'){
+      const d=item.data;
+      const isClosed=d.closed;
+      return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)">'
+        +'<div><div style="font-size:12px;font-weight:700;color:var(--rd)">'+(d.docnum?'#'+d.docnum+' · ':'')+(d.desc||'חוב')
+        +(isClosed?'<span style="font-size:10px;color:var(--gr);margin-right:4px">✓ סגור</span>':'')+'</div>'
+        +'<div style="font-size:10px;color:var(--t2)">'+fmtDate(d.date)+'</div></div>'
+        +'<div style="font-weight:800;color:var(--rd)">'+fmt(d.amount)+'</div>'
+        +'</div>';
+    }else{
+      const p=item.data;
+      const isDeferred=p.isDeferred&&p.checkDate>today();
+      const color=p.method==='זיכוי'?'var(--ac)':'var(--gr)';
+      return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)">'
+        +'<div><div style="font-size:12px;font-weight:700;color:'+color+'">'
+        +p.method+(p.check?' #'+p.check:'')+(p.linkedDoc?'':'')+' '+(p.note?'· '+p.note:'')
+        +(isDeferred?'<span style="font-size:10px;color:var(--yw);margin-right:4px">⏳ דחוי</span>':'')+'</div>'
+        +'<div style="font-size:10px;color:var(--t2)">'+fmtDate(item.date)+(isDeferred?' (שיק '+fmtDate(p.checkDate)+')':'')+'</div></div>'
+        +'<div style="font-weight:800;color:'+color+'">'+(p.method==='זיכוי'?'+ ':'')+fmt(Math.abs(p.amount))+'</div>'
+        +'</div>';
+    }
+  }).join('');
+}
+
+function renderAll(){renderDashboard();if(curPage==='cust')renderCustomers();if(curPage==='eq')renderEquipment();if(curPage==='debt')renderDebts();if(curPage==='hist')renderHistory();if(curPage==='monthly')renderMonthlyCollection();checkCollectionAlerts();checkVisitAlerts();}
 
 document.getElementById('fab-btn').style.display='none';
 // renderAll called after login
 </script>
 
 <div class="photo-fullscreen" id="photo-fullscreen" style="display:none" onclick="closeFullscreen()"><button class="photo-fullscreen-close" onclick="closeFullscreen()">✕</button><img id="photo-fullscreen-img" src=""><div style="color:var(--t2);font-size:12px;margin-top:12px" id="photo-fullscreen-date"></div></div>
+
+<!-- VISIT UPDATE MODAL -->
+
+<div class="overlay" id="modal-visit">
+  <div class="sheet">
+    <div class="shandle"></div>
+    <div class="shead"><span class="stitle">📸 עדכון ביקור</span><button class="xbtn" onclick="closeModal('modal-visit')">✕</button></div>
+    <div class="sbody">
+      <div id="visit-alert-banner" style="display:none;background:var(--rd);color:#fff;border-radius:10px;padding:10px;margin-bottom:12px;font-size:13px"></div>
+      <div class="fg"><label class="fl">תמונה מהביקור *</label>
+        <input type="file" accept="image/*" id="visit-photo" capture="environment" class="fi" style="padding:8px">
+      </div>
+      <div class="fg"><label class="fl">הערות ביקור</label>
+        <textarea class="fi" id="visit-notes" rows="3" placeholder="מה נעשה בביקור?"></textarea>
+      </div>
+      <div id="visit-skip-wrap" style="display:none">
+        <div style="font-weight:700;color:var(--rd);margin-bottom:6px;font-size:13px">⚠️ ביקור לא בוצע — חובה לציין סיבה:</div>
+        <div class="fg"><textarea class="fi" id="visit-skip-reason" rows="2" placeholder="סיבה לאי-ביקור (חובה)..."></textarea></div>
+      </div>
+      <button class="btnp" onclick="saveVisit()">שמור עדכון ביקור</button>
+      <button onclick="markVisitSkipped()" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;background:none;border:1px solid var(--br);color:var(--t2);font-size:14px;cursor:pointer">לא ביקרתי — רשום סיבה</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
