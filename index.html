@@ -740,32 +740,7 @@ function load(){try{const d=localStorage.getItem(SK);if(d)return JSON.parse(d);}
 function save(){if(!DB.visits)DB.visits=[];localStorage.setItem(SK,JSON.stringify(DB));saveToCloud();}
 let DB=load();
 
-if(DB.customers.length===0){
-  DB.customers=[
-    {id:'c1',name:'מרכול כהן',contact:'משה כהן',phone:'050-1234567',city:'תל אביב',credit:'B',limit:8000,notes:'לקוח ותיק',created:'2024-01-15',active:true},
-    {id:'c2',name:'סופר אבי',contact:'אבי לוי',phone:'052-9876543',city:'רמת גן',credit:'A',limit:15000,notes:'',created:'2024-02-20',active:true},
-    {id:'c3',name:'קיוסק מוטי',contact:'מוטי גל',phone:'054-5551234',city:'חולון',credit:'C',limit:3000,notes:'שימו לב',created:'2024-03-10',active:true},
-    {id:'c4',name:'מינימרקט רון',contact:'רון ישראלי',phone:'053-7778899',city:'פתח תקווה',credit:'B',limit:6000,notes:'',created:'2024-04-05',active:true},
-  ];
-  DB.equipment=[
-    {id:'e1',type:'🧊 מקרר',serial:'FR-001',custId:'c1',placed:'2024-01-20',collect:'2024-12-31',status:'ok',eqDebt:0,notes:''},
-    {id:'e2',type:'🏪 מדף',serial:'SH-007',custId:'c1',placed:'2024-02-01',collect:'',status:'ok',eqDebt:500,notes:'מדף תצוגה'},
-    {id:'e3',type:'❄️ ארון קפוא',serial:'FZ-012',custId:'c2',placed:'2024-03-15',collect:'',status:'ok',eqDebt:0,notes:''},
-    {id:'e4',type:'🧊 מקרר',serial:'FR-005',custId:'c3',placed:'2024-01-10',collect:'2024-06-10',status:'broken',eqDebt:1200,notes:'דלת פגומה'},
-    {id:'e5',type:'📦 דיספלי',serial:'DP-002',custId:'c4',placed:'2024-04-10',collect:'',status:'ok',eqDebt:0,notes:''},
-  ];
-  DB.debts=[
-    {id:'d1',custId:'c1',amount:3500,date:'2024-10-01',desc:'רכש אוקטובר'},
-    {id:'d2',custId:'c3',amount:2200,date:'2024-08-15',desc:'רכש אוגוסט'},
-    {id:'d3',custId:'c3',amount:800,date:'2024-09-01',desc:'רכש ספטמבר'},
-    {id:'d4',custId:'c4',amount:1100,date:'2024-10-20',desc:'רכש אוקטובר'},
-  ];
-  DB.payments=[
-    {id:'p1',custId:'c2',amount:2000,date:'2024-11-01',method:'מזומן',check:'',note:''},
-    {id:'p2',custId:'c1',amount:500,date:'2024-11-05',method:'שיק',check:'1234',note:''},
-  ];
-  save();
-}
+
 
 function uid(){return '_'+Math.random().toString(36).substr(2,9);}
 function fmt(n){return '₪'+Number(n).toLocaleString('he-IL');}
