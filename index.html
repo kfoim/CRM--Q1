@@ -1074,18 +1074,7 @@ function delEq(eid){
 }
 
 /* ---- PAYMENT ---- */
-function openPaymentModal(cid){
-  activeCid=cid;
-  const c=getCust(cid);
-  document.getElementById('pay-cust-name').value=c.name;
-  document.getElementById('pay-balance').value=fmt(totalDebt(cid));
-  document.getElementById('pay-amount').value='';
-  document.getElementById('pay-check').value='';
-  document.getElementById('pay-note').value='';
-  document.getElementById('pay-date').value=today();
-  closeModal('modal-cust-detail');
-  setTimeout(()=>openModal('modal-payment'),200);
-}
+
 function openPaymentGeneral(){
   document.getElementById('pay-cust-name').value='';
   document.getElementById('pay-balance').value='';
@@ -1161,6 +1150,13 @@ function onPayMethodChange(){
 
 function openPaymentModal(cid){
   activeCid=cid;
+  const cust=getCust(cid);
+  // עדכן שם ויתרה
+  const nameEl=document.getElementById('pay-cust-name');
+  const balEl=document.getElementById('pay-balance');
+  if(nameEl) nameEl.value=cust?cust.name:'';
+  if(balEl) balEl.value=cust?fmt(totalDebt(cid)):'';
+  // אפס שדות
   document.getElementById('pay-amount').value='';
   document.getElementById('pay-method').value='מזומן';
   document.getElementById('pay-date').value=today();
@@ -1171,12 +1167,16 @@ function openPaymentModal(cid){
   document.getElementById('pay-check-wrap').style.display='none';
   document.getElementById('pay-check-date-wrap').style.display='none';
   document.getElementById('pay-docref-wrap').style.display='none';
-  // מלא רשימת מסמכים פתוחים
+  // מלא מסמכים פתוחים
   const sel=document.getElementById('pay-doc-select');
-  const openDebts=DB.debts.filter(d=>d.custId===cid&&!d.closed);
-  sel.innerHTML='<option value="">-- ללא שיוך מסמך --</option>'
-    +openDebts.map(d=>'<option value="'+d.id+'">#'+d.docnum+' | '+fmt(d.amount)+(d.desc?' | '+d.desc:'')+'</option>').join('');
-  openModal('modal-payment');
+  if(sel){
+    const openDebts=DB.debts.filter(d=>d.custId===cid&&!d.closed);
+    sel.innerHTML='<option value="">-- ללא שיוך מסמך --</option>'
+      +openDebts.map(d=>'<option value="'+d.id+'">#'+(d.docnum||'')+'  '+fmt(d.amount)+(d.desc?' | '+d.desc:'')+'</option>').join('');
+  }
+  // סגור כרטיס לקוח ופתח תשלום
+  closeModal('modal-cust-detail');
+  setTimeout(()=>openModal('modal-payment'),250);
 }
 
 
