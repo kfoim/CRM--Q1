@@ -752,10 +752,16 @@ function avClass(i){return 'av'+(i%5+1);}
 function avLetter(n){return n?n.charAt(0):'?';}
 
 function custDebt(cid){
-  const d=DB.debts.filter(x=>x.custId===cid).reduce((s,x)=>s+Number(x.amount),0);
-  // שיק דחוי יורד מהחוב גם לפני מועד הפירעון
-  const p=DB.payments.filter(x=>x.custId===cid).reduce((s,x)=>s+Number(x.amount),0);
-  return d-p;
+  // סכום כל החובות בניכוי תשלומים חלקיים שכבר נרשמו
+  const d=DB.debts.filter(x=>x.custId===cid&&!x.isCredit)
+    .reduce((s,x)=>s+(Number(x.amount)-(x.paidAmount||0)),0);
+  // זיכויים
+  const cr=DB.debts.filter(x=>x.custId===cid&&x.isCredit)
+    .reduce((s,x)=>s+Math.abs(Number(x.amount)),0);
+  // תשלומים שאינם מקושרים למסמך (כבר חושב ב-paidAmount של המסמך)
+  const p=DB.payments.filter(x=>x.custId===cid&&!x.linkedDoc)
+    .reduce((s,x)=>s+Number(x.amount),0);
+  return d-cr-p;
 }
 function eqDebt(cid){return DB.equipment.filter(e=>e.custId===cid).reduce((s,e)=>s+Number(e.eqDebt||0),0);}
 function totalDebt(cid){return custDebt(cid)+eqDebt(cid);}
@@ -1094,51 +1100,76 @@ function savePayment(){
   const payDate=document.getElementById('pay-date').value;
   const note=document.getElementById('pay-note').value.trim();
   const docSel=document.getElementById('pay-doc-select').value;
-  
+
   if(!amt||amt<=0){alert('נא להזין סכום');return;}
-  if(!note){alert('הערה היא שדה חובה בכל תשלום');return;}
-  
+  if(!note){alert('הערה היא שדה חובה');return;}
+
   let checkNum='',checkDate='',docRef='';
-  
+
   if(method==='שיק'){
     checkNum=document.getElementById('pay-check').value.trim();
     checkDate=document.getElementById('pay-check-date').value;
     if(!checkNum){alert('מספר שיק הוא חובה');return;}
     if(!checkDate){alert('תאריך השיק הוא חובה');return;}
-    // בדיקת תאריך שיק מול שוטף
-    const cust=getCust(activeCid);
-    if(cust&&cust.terms&&!isNaN(parseInt(cust.terms))&&docSel){
+    if(docSel){
+      const cust=getCust(activeCid);
       const debt=DB.debts.find(d=>d.id===docSel);
-      if(debt){
+      if(cust&&cust.terms&&!isNaN(parseInt(cust.terms))&&debt){
         const v=validateCheckDate(checkDate,debt.date,cust.terms);
-        if(!v.ok){
-          const msg2=v.msg+'\n\nהאם להמשיך בכל זאת?';
-          if(!confirm(msg2))return;
-        }else{showToast(v.msg);}
+        if(!v.ok){if(!confirm(v.msg+' האם להמשיך?'))return;}
+        else showToast(v.msg);
       }
     }
   }
-  
+
   if(method==='זיכוי'){
     docRef=document.getElementById('pay-docref').value.trim();
     if(!docRef){alert('מספר מסמך הוא חובה לזיכוי');return;}
+    // זיכוי = רשומת חוב שלילית (מורידה מיתרה)
+    DB.debts.push({
+      id:uid(),custId:activeCid,
+      amount:-Math.abs(amt),
+      docnum:docRef,
+      date:payDate,
+      desc:'זיכוי'+(note?' — '+note:''),
+      isCredit:true,
+      closed:true
+    });
+    save();renderAll();closeModal('modal-payment');
+    showToast('זיכוי נרשם ✅ '+fmt(amt));
+    return;
   }
-  
-  // סמן מסמך כסגור אם נבחר
+
+  // טיפול במסמך שנבחר
   if(docSel){
     const debt=DB.debts.find(d=>d.id===docSel);
-    if(debt){debt.closed=true;debt.closedDate=payDate;debt.closedBy=method;}
+    if(debt){
+      const alreadyPaid=debt.paidAmount||0;
+      const remaining=Number(debt.amount)-alreadyPaid;
+      if(amt>=remaining){
+        // סגירה מלאה
+        debt.paidAmount=Number(debt.amount);
+        debt.closed=true;
+        debt.closedDate=payDate;
+        debt.closedBy=method;
+      } else {
+        // תשלום חלקי — המסמך נשאר פתוח עם יתרה מעודכנת
+        debt.paidAmount=alreadyPaid+amt;
+        debt.lastPayDate=payDate;
+        // לא סוגרים — debt.closed נשאר false
+      }
+    }
   }
-  
+
   DB.payments.push({
-    id:uid(),custId:activeCid,amount:method==='זיכוי'?-Math.abs(amt):amt,
+    id:uid(),custId:activeCid,amount:amt,
     method,date:payDate,note,
-    check:checkNum,checkDate,docRef,
+    check:checkNum,checkDate,docRef:'',
     linkedDoc:docSel||null,
-    isDeferred:method==='שיק'&&checkDate>payDate
+    isDeferred:method==='שיק'&&checkDate&&checkDate>payDate
   });
   save();renderAll();closeModal('modal-payment');
-  showToast('תשלום נרשם ✅ '+fmt(Math.abs(amt)));
+  showToast('תשלום נרשם ✅ '+fmt(amt));
 }
 
 function onPayMethodChange(){
@@ -1170,9 +1201,14 @@ function openPaymentModal(cid){
   // מלא מסמכים פתוחים
   const sel=document.getElementById('pay-doc-select');
   if(sel){
-    const openDebts=DB.debts.filter(d=>d.custId===cid&&!d.closed);
+    const openDebts=DB.debts.filter(d=>d.custId===cid&&!d.closed&&!d.isCredit);
     sel.innerHTML='<option value="">-- ללא שיוך מסמך --</option>'
-      +openDebts.map(d=>'<option value="'+d.id+'">#'+(d.docnum||'')+'  '+fmt(d.amount)+(d.desc?' | '+d.desc:'')+'</option>').join('');
+      +openDebts.map(d=>{
+        const paid=d.paidAmount||0;
+        const remaining=Number(d.amount)-paid;
+        const partial=paid>0?' [שולם '+fmt(paid)+']':'';
+        return '<option value="'+d.id+'">#'+(d.docnum||'')+' | נותר: '+fmt(remaining)+partial+(d.desc?' | '+d.desc:'')+'</option>';
+      }).join('');
   }
   // סגור כרטיס לקוח ופתח תשלום
   closeModal('modal-cust-detail');
@@ -2084,46 +2120,57 @@ function importCSV(file){
 
 /* ---- PAYMENT HISTORY WITH DEFERRED CHECKS ---- */
 function renderPaymentHistory(cid){
-  const el=document.getElementById('cd-payments');
+  const el=document.getElementById('cd-history');
   if(!el)return;
-  const pays=DB.payments.filter(p=>p.custId===cid).sort((a,b)=>a.date>b.date?-1:1);
+  const pays=DB.payments.filter(p=>p.custId===cid);
   const debts=DB.debts.filter(d=>d.custId===cid);
-  if(!pays.length&&!debts.length){el.innerHTML='<div style="color:var(--t2);font-size:12px;padding:8px">אין היסטוריה</div>';return;}
-  
-  // מיין הכל ביחד — חובות וזיכויים
+  if(!pays.length&&!debts.length){
+    el.innerHTML='<div style="color:var(--t2);font-size:12px;padding:8px">אין היסטוריה</div>';
+    return;
+  }
   let items=[];
-  debts.forEach(d=>items.push({type:'debt',date:d.date,data:d}));
-  pays.forEach(p=>{
-    // שיק דחוי מופיע לפי תאריך השיק
-    const displayDate=p.isDeferred&&p.checkDate?p.checkDate:p.date;
-    items.push({type:'pay',date:displayDate,data:p});
-  });
+  debts.forEach(d=>items.push({type:d.isCredit?'credit':'debt',date:d.date,data:d}));
+  pays.forEach(p=>items.push({type:'pay',date:p.isDeferred&&p.checkDate?p.checkDate:p.date,data:p}));
   items.sort((a,b)=>a.date>b.date?-1:1);
-  
+
   el.innerHTML=items.map(item=>{
     if(item.type==='debt'){
       const d=item.data;
+      const paid=d.paidAmount||0;
+      const remaining=Number(d.amount)-paid;
       const isClosed=d.closed;
-      return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)">'
+      const isPartial=paid>0&&!isClosed;
+      let statusTag='';
+      if(isClosed) statusTag='<span style="font-size:10px;color:var(--gr);margin-right:4px">✓ סגור</span>';
+      else if(isPartial) statusTag='<span style="font-size:10px;color:var(--yw);margin-right:4px">⏳ חלקי — נותר '+fmt(remaining)+'</span>';
+      else statusTag='<span style="font-size:10px;color:var(--rd);margin-right:4px">פתוח</span>';
+      return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--br)">'
         +'<div><div style="font-size:12px;font-weight:700;color:var(--rd)">'+(d.docnum?'#'+d.docnum+' · ':'')+(d.desc||'חוב')
-        +(isClosed?'<span style="font-size:10px;color:var(--gr);margin-right:4px">✓ סגור</span>':'')+'</div>'
+        +statusTag+'</div>'
         +'<div style="font-size:10px;color:var(--t2)">'+fmtDate(d.date)+'</div></div>'
         +'<div style="font-weight:800;color:var(--rd)">'+fmt(d.amount)+'</div>'
         +'</div>';
-    }else{
-      const p=item.data;
-      const isDeferred=p.isDeferred&&p.checkDate>today();
-      const color=p.method==='זיכוי'?'var(--ac)':'var(--gr)';
+    } else if(item.type==='credit'){
+      const d=item.data;
       return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)">'
-        +'<div><div style="font-size:12px;font-weight:700;color:'+color+'">'
-        +p.method+(p.check?' #'+p.check:'')+(p.linkedDoc?'':'')+' '+(p.note?'· '+p.note:'')
-        +(isDeferred?'<span style="font-size:10px;color:var(--yw);margin-right:4px">⏳ דחוי</span>':'')+'</div>'
-        +'<div style="font-size:10px;color:var(--t2)">'+fmtDate(item.date)+(isDeferred?' (שיק '+fmtDate(p.checkDate)+')':'')+'</div></div>'
-        +'<div style="font-weight:800;color:'+color+'">'+(p.method==='זיכוי'?'+ ':'')+fmt(Math.abs(p.amount))+'</div>'
+        +'<div><div style="font-size:12px;font-weight:700;color:var(--gr)">✚ זיכוי'+(d.docnum?' #'+d.docnum:'')+(d.desc?' · '+d.desc.replace('זיכוי — ',''):'')+'</div>'
+        +'<div style="font-size:10px;color:var(--t2)">'+fmtDate(d.date)+'</div></div>'
+        +'<div style="font-weight:800;color:var(--gr)">+'+fmt(Math.abs(d.amount))+'</div>'
+        +'</div>';
+    } else {
+      const p=item.data;
+      const isDeferred=p.isDeferred&&p.checkDate&&p.checkDate>today();
+      return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br)">'
+        +'<div><div style="font-size:12px;font-weight:700;color:var(--gr)">'+p.method+(p.check?' #'+p.check:'')
+        +(p.note?' · '+p.note:'')
+        +(isDeferred?'<span style="color:var(--yw);font-size:10px"> ⏳ דחוי</span>':'')+'</div>'
+        +'<div style="font-size:10px;color:var(--t2)">'+fmtDate(item.date)+'</div></div>'
+        +'<div style="font-weight:800;color:var(--gr)">'+fmt(p.amount)+'</div>'
         +'</div>';
     }
   }).join('');
 }
+
 
 function renderAll(){renderDashboard();checkThursdayReminder();if(curPage==='cust')renderCustomers();if(curPage==='eq')renderEquipment();if(curPage==='debt')renderDebts();if(curPage==='hist')renderHistory();if(curPage==='monthly')renderMonthlyCollection();checkCollectionAlerts();checkVisitAlerts();}
 
