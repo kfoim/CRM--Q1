@@ -752,17 +752,24 @@ function avClass(i){return 'av'+(i%5+1);}
 function avLetter(n){return n?n.charAt(0):'?';}
 
 function custDebt(cid){
-  // סכום כל החובות בניכוי תשלומים חלקיים שכבר נרשמו
-  const d=DB.debts.filter(x=>x.custId===cid&&!x.isCredit)
-    .reduce((s,x)=>s+(Number(x.amount)-(x.paidAmount||0)),0);
+  let total=0;
+  DB.debts.filter(x=>x.custId===cid&&!x.isCredit).forEach(x=>{
+    if(x.closed){
+      // מסמך סגור — לא תורם לחוב
+    } else {
+      // מסמך פתוח — חוב מינוס מה ששולם חלקית
+      total+=Number(x.amount)-(x.paidAmount||0);
+    }
+  });
   // זיכויים
   const cr=DB.debts.filter(x=>x.custId===cid&&x.isCredit)
     .reduce((s,x)=>s+Math.abs(Number(x.amount)),0);
-  // תשלומים שאינם מקושרים למסמך (כבר חושב ב-paidAmount של המסמך)
+  // תשלומים ללא מסמך מקושר
   const p=DB.payments.filter(x=>x.custId===cid&&!x.linkedDoc)
     .reduce((s,x)=>s+Number(x.amount),0);
-  return d-cr-p;
+  return total-cr-p;
 }
+
 function eqDebt(cid){return DB.equipment.filter(e=>e.custId===cid).reduce((s,e)=>s+Number(e.eqDebt||0),0);}
 function totalDebt(cid){return custDebt(cid)+eqDebt(cid);}
 
@@ -961,7 +968,7 @@ function openCustDetail(cid){
     </div>`).join('')
     :'<div style="color:var(--t3);font-size:13px;padding:8px 0">אין ציוד רשום</div>';
   // Debts with multi-select checkboxes
-  const custDebts=DB.debts.filter(d=>d.custId===cid).sort((a,b)=>b.date.localeCompare(a.date));
+  const custDebts=DB.debts.filter(d=>d.custId===cid&&!d.closed&&!d.isCredit).sort((a,b)=>b.date.localeCompare(a.date));
   let debtHtml='';
   if(custDebts.length){
     debtHtml='<div style="margin-bottom:8px">'
@@ -977,7 +984,8 @@ function openCustDetail(cid){
         +'<div style="flex:1">'
         +'<div style="display:flex;align-items:center;gap:6px">'
         +(d.docnum?'<span style="background:var(--s3);border:1px solid var(--br);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:800;color:var(--tx)">#'+d.docnum+'</span>':'')
-        +'<span style="font-size:13px;font-weight:700;color:var(--rd)">'+fmt(d.amount)+'</span>'
+        +'<span style="font-size:13px;font-weight:700;color:var(--rd)">'+fmt(Number(d.amount)-(d.paidAmount||0))+'</span>'
+        +(d.paidAmount?'<span style="font-size:10px;color:var(--yw);margin-right:4px"> שולם חלק '+fmt(d.paidAmount)+'</span>':'')
         +'</div>'
         +(d.desc?'<div style="font-size:11px;color:var(--t2);margin-top:2px">'+d.desc+'</div>':'')
         +'</div>'
