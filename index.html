@@ -118,8 +118,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
 .hdot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
 .ht{font-size:13px;font-weight:500}
 .hd{font-size:11px;color:var(--t2);margin-top:2px}
-.arow{display:flex;gap:8px;margin-top:4px}
-.abtn{flex:1;padding:11px 6px;border-radius:12px;border:1px solid var(--br);background:var(--s2);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .15s}
+.arow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px;width:100%}
+.abtn{padding:10px 4px;border-radius:12px;border:1px solid var(--br);background:var(--s2);color:var(--tx);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:100%}
+.abtn span{font-size:22px;display:block}
 .abtn:active{background:var(--s3);transform:scale(.97)}
 .abtn span{font-size:19px}
 .toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:var(--s3);border:1px solid var(--br);color:var(--tx);font-size:13px;font-weight:600;padding:10px 20px;border-radius:30px;z-index:300;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -203,7 +204,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
       <div class="tsub" id="tsub">טוען... <span id="sync-status" style="color:var(--gr);font-weight:700;transition:opacity 1s"></span></div>
     </div>
   </div>
-  <div style="display:flex;gap:8px"><button class="ibtn" id="thu-btn" onclick="openEnvelopeUpload()" style="display:none" title="חמישי - העלאת מעטפה">📬</button><button class="ibtn" onclick="openReport()">📊</button><button class="ibtn" onclick="openModal('modal-export');populateExportCustSel()">📤</button><button class="ibtn" onclick="openModal('modal-share')">📲</button></div>
+  <div style="display:flex;gap:8px"><button class="ibtn" id="thu-btn" onclick="openEnvelopeUpload()" style="opacity:0.3" title="העלאת מעטפה למשרד">📬</button><button class="ibtn" onclick="openReport()">📊</button><button class="ibtn" onclick="openModal('modal-export');populateExportCustSel()">📤</button><button class="ibtn" onclick="openModal('modal-share')">📲</button></div>
 </div>
 
 <!-- DASHBOARD -->
@@ -962,7 +963,6 @@ function openCustDetail(cid){
     <div class="dkv"><span class="dk">עיר</span><span class="dv">${c.city||'—'}</span></div>
     <div class="dkv"><span class="dk">איש קשר</span><span class="dv">${c.contact||'—'}</span></div>
     <div class="dkv"><span class="dk">תנאי תשלום</span><span class="dv"><span class="chip cb" onclick="openEditTerms(c.id)" style="cursor:pointer">${c.terms?'שוטף '+c.terms:'לא הוגדר'} ✏️</span></span></div>
-    <div class="dkv"><span class="dk">מסגרת אשראי</span><span class="dv">${fmt(c.limit||0)}</span></div>
     <div class="dkv"><span class="dk">חוב רכש</span><span class="dv" style="color:${custDebt(cid)>0?'var(--rd)':'var(--gr)'}">${fmt(Math.abs(custDebt(cid)))}</span></div>
     <div class="dkv"><span class="dk">חוב ציוד</span><span class="dv" style="color:${eqDebt(cid)>0?'var(--yw)':'var(--t2)'}">${fmt(eqDebt(cid))}</span></div>
     <div class="dkv"><span class="dk">סה"כ חוב</span><span class="dv" style="color:${debt>0?'var(--rd)':debt<0?'var(--gr)':'var(--t2)'};font-size:17px;font-weight:900">${fmt(Math.abs(debt))} ${debt>0?'חוב':debt<0?'זכות':'מאוזן'}</span></div>
@@ -2272,14 +2272,26 @@ function saveEnvelope(){
 function checkThursdayReminder(){
   const btn=document.getElementById('thu-btn');if(!btn)return;
   const isThursday=new Date().getDay()===4;
-  btn.style.display=isThursday?'flex':'none';
-  if(!isThursday)return;
+  if(!isThursday){
+    btn.style.opacity='0.3';
+    btn.style.background='';
+    btn.style.border='';
+    return;
+  }
+  btn.style.opacity='1';
   const uploaded=localStorage.getItem('envelope_'+today());
-  if(uploaded){btn.style.background='rgba(30,200,120,.2)';btn.style.border='1px solid var(--gr)';}
-  else{
-    btn.style.background='rgba(245,192,64,.2)';btn.style.border='1px solid var(--yw)';
+  if(uploaded){
+    btn.style.background='rgba(30,200,120,.2)';
+    btn.style.border='1px solid var(--gr)';
+    btn.title='מעטפה הועלתה ✅';
+  } else {
+    btn.style.background='rgba(245,192,64,.2)';
+    btn.style.border='1px solid var(--yw)';
     const key='thu_alert_'+today();
-    if(!localStorage.getItem(key)){localStorage.setItem(key,'1');setTimeout(()=>showToast('📬 יום חמישי — אל תשכח להעלות את המעטפה!'),3000);}
+    if(!localStorage.getItem(key)){
+      localStorage.setItem(key,'1');
+      setTimeout(()=>showToast('📬 יום חמישי — אל תשכח להעלות את המעטפה!'),3000);
+    }
   }
 }
 
